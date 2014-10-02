@@ -1,2 +1,24 @@
-root=/dev/mmcblk0p1
-extraargs=console=tty0 hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1920x1080p60 rootwait panic=10 rootfstype=ext4 rootflags=discard
+mmcdev=0
+mmcpart=1
+loadaddr=0x48000000
+loglevel=8
+panicarg=panic=10
+console=ttyS0
+baudrate=115200
+mmcroot=/dev/mmcblk0p1 rw rootwait rootfstype=ext4 rootflags=discard
+extraargs=hdmi.audio=EDID:0 disp.screen0_output_mode=EDID:1920x1080p60
+mmcargs=setenv bootargs console=${console},${baudrate} ${optargs} root=${mmcroot} video=${video} loglevel=${loglevel} ${panicarg} ${extraargs}
+
+fdt_addr=0x44000000
+fdt_file=sun7i-a20-cubietruck.dtb
+loadzimage=echo load zImage...; load mmc ${mmcdev}:${mmcpart} ${loadaddr} /boot/zImage
+loadfdt=echo load DT...; load mmc ${mmcdev}:${mmcpart} ${fdt_addr} /boot/dtbs/${fdt_file}
+mmcbootz=echo mmc bootz...; run mmcargs; true; bootz ${loadaddr} - ${fdt_addr}
+cmdbootz=if run loadzimage; then if run loadfdt; then run mmcbootz; fi; fi
+
+loaduimage=echo load uImage...; load mmc ${mmcdev}:${mmcpart} ${loadaddr} /boot/uImage
+loadscript=echo load script...; load mmc ${mmcdev}:${mmcpart} ${scriptaddr} /boot/script.bin
+mmcbootm=echo mmc bootm...; run mmcargs; true; bootm ${loadaddr}
+cmdbootu=if run loaduimage; then run loadscript; run mmcbootm; fi
+
+uenvcmd=run cmdbootz; run cmdbootu
