@@ -16,9 +16,10 @@ loadfdt=echo load DT...; load mmc ${mmcdev}:${mmcpart} ${fdt_addr} /boot/dtbs/${
 mmcbootz=echo mmc bootz...; run mmcargs; true; bootz ${loadaddr} - ${fdt_addr}
 cmdbootz=if run loadzimage; then if run loadfdt; then run mmcbootz; fi; fi
 
-loaduimage=echo load uImage...; load mmc ${mmcdev}:${mmcpart} ${loadaddr} /boot/uImage
-loadscript=echo load script...; load mmc ${mmcdev}:${mmcpart} ${scriptaddr} /boot/script.bin
+scriptaddr=0x43000000
+loaduimage=echo load uImage...; ext2load mmc ${mmcdev}:${mmcpart} ${loadaddr} /boot/uImage
+loadscript=echo load script...; ext2load mmc ${mmcdev}:${mmcpart} ${scriptaddr} /boot/script.bin
 mmcbootm=echo mmc bootm...; run mmcargs; true; bootm ${loadaddr}
-cmdbootu=if run loaduimage; then run loadscript; run mmcbootm; fi
+cmdbootu=run loadscript; if run loaduimage; then run mmcbootm; fi
 
 uenvcmd=run cmdbootz; run cmdbootu
